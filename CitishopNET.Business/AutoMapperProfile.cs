@@ -31,6 +31,15 @@ namespace CitishopNET.Business
 				.ForMember(dst => dst.Description, opt => opt.MapFrom(src => src.Description))
 				.ForMember(dst => dst.ImageUrl, opt => opt.MapFrom(src => src.ImageUrl));
 
+			CreateMap<RegisterUserDto, ApplicationUser>(MemberList.None) // <Source, Dest>
+				.ForMember(dst => dst.Address, opt => opt.MapFrom(src => src.Address))
+				.ForMember(dst => dst.DOB, opt => opt.MapFrom(src => src.DateOfBirth))
+				.ForMember(dst => dst.Gender, opt => opt.MapFrom(src => src.Gender));
+
+			CreateMap<EditUserDto, ApplicationUser>(MemberList.None) // <Source, Dest>
+				.ForMember(dst => dst.Address, opt => opt.MapFrom(src => src.Address))
+				.ForMember(dst => dst.DOB, opt => opt.MapFrom(src => src.DateOfBirth))
+				.ForMember(dst => dst.Gender, opt => opt.MapFrom(src => src.Gender));
 		}
 
 		private void FromDataAccessLayer()

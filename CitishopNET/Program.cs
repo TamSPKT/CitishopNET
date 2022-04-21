@@ -7,13 +7,12 @@ using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Identity;
 using System.Reflection;
-using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddCitishopDataAccessLayer(builder.Configuration);
-builder.Services.AddCitishopBusinessLayer();
+builder.Services.AddCitishopBusinessLayer(builder.Configuration);
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 {
@@ -23,7 +22,8 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 
 	options.User.RequireUniqueEmail = true;
 })
-	.AddEntityFrameworkStores<ApplicationDbContext>();
+	.AddEntityFrameworkStores<ApplicationDbContext>()
+	.AddDefaultTokenProviders();
 
 builder.Services.AddControllersWithViews()
 	.AddFluentValidation(fv =>
