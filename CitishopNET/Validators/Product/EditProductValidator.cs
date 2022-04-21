@@ -10,7 +10,7 @@ namespace CitishopNET.Validators.Product
 	/// RegisterValidatorsFromAssembly(...) in Program.cs 
 	/// registers all validators derived from AbstractValidator within this assembly.
 	/// </summary>
-	public class EditProductValidator: AbstractValidator<EditProductDto>
+	public class EditProductValidator : AbstractValidator<EditProductDto>
 	{
 		public EditProductValidator()
 		{
