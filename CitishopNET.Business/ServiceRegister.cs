@@ -13,11 +13,17 @@ namespace CitishopNET.Business
 		{
 			services.AddAutoMapper(Assembly.GetExecutingAssembly());
 			services.AddTransient(typeof(IBaseRepository<>), typeof(BaseRepository<>));
+			services.AddTransient(typeof(ICategoryService), typeof(CategoryService));
 			services.AddTransient(typeof(IProductService), typeof(ProductService));
 			services.AddTransient(typeof(IUserService), typeof(UserService));
+			services.AddTransient(typeof(IUserDeliveryAddressService), typeof(UserDeliveryAddressService));
+			services.AddTransient(typeof(IInvoiceService), typeof(InvoiceService));
 
 			services.AddTransient<IEmailSender, EmailSender>();
 			services.Configure<AuthMessageSenderOptions>(configuration.GetSection(AuthMessageSenderOptions.AuthMessageSender));
+
+			services.AddTransient<IMomoService, MomoService>();
+			services.Configure<MomoPaymentOptions>(configuration.GetSection(MomoPaymentOptions.MomoPayment));
 		}
 	}
 }

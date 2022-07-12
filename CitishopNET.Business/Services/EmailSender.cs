@@ -32,7 +32,7 @@ namespace CitishopNET.Business.Services
 			var client = new SendGridClient(apiKey);
 			var msg = new SendGridMessage()
 			{
-				From = new EmailAddress("18110359@student.hcmute.edu.vn", "Password Recovery"),
+				From = new EmailAddress("18110359@student.hcmute.edu.vn", "Citishop Email"),
 				Subject = subject,
 				PlainTextContent = message,
 				HtmlContent = message

@@ -2,6 +2,7 @@
 using CitishopNET.DataAccess.Models;
 using CitishopNET.Shared.Dtos.ApplicationUser;
 using CitishopNET.Shared.QueryCriteria;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
@@ -11,6 +12,7 @@ using System.Text.Encodings.Web;
 namespace CitishopNET.Controllers
 {
 	[ApiController]
+	[EnableCors("MyPolicy")]
 	[Route("api/[controller]")]
 	[Produces("application/json")]
 	public class UserController : ControllerBase
@@ -40,7 +42,7 @@ namespace CitishopNET.Controllers
 		/// </summary>
 		/// <param name="query"></param>
 		/// <returns></returns>
-		/// <response code="200">Trả về danh sách Product</response>
+		/// <response code="200">Trả về danh sách User</response>
 		// GET api/<UserController>
 		[HttpGet]
 		[ProducesResponseType(StatusCodes.Status200OK)]
@@ -48,6 +50,22 @@ namespace CitishopNET.Controllers
 		{
 			var users = await _userService.GetUsersAsync(query);
 			return Ok(users);
+		}
+
+		/// <summary>
+		/// Lấy User theo Email
+		/// </summary>
+		/// <param name="email"></param>
+		/// <returns></returns>
+		/// <response code="200">Trả về User</response>
+		/// <response code="404">Không tìm thấy User</response>
+		// GET api/<UserController>/5
+		[HttpGet("{email}")]
+		[ProducesResponseType(StatusCodes.Status200OK)]
+		public async Task<IActionResult> GetByEmailAsync(string email)
+		{
+			var userDto = await _userService.GetUserByEmailAsync(email);
+			return userDto == null ? NotFound() : Ok(userDto);
 		}
 
 		/// <summary>
@@ -77,9 +95,10 @@ namespace CitishopNET.Controllers
 					action: "ConfirmEmail",
 					values: new { area = "api", userId, code },
 					protocol: Request.Scheme);
+				var encodedUrl = HtmlEncoder.Default.Encode(callbackUrl!);
 				await _emailSender.SendEmailAsync(value.Email,
-					"Xác nhận email",
-					$"Vui lòng xác nhận email bằng cách click <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>link này</a>.");
+				"Xác nhận email",
+				$"Vui lòng xác nhận email bằng cách click link này <a href='{encodedUrl}'>{encodedUrl}</a>");
 
 				return Ok(new { userId, code });
 			}
@@ -113,7 +132,7 @@ namespace CitishopNET.Controllers
 					action: "ConfirmEmail",
 					values: new { userId, code },
 					protocol: Request.Scheme);
-			var encodedUrl = HtmlEncoder.Default.Encode(callbackUrl);
+			var encodedUrl = HtmlEncoder.Default.Encode(callbackUrl!);
 			await _emailSender.SendEmailAsync(value.Email,
 				"Xác nhận email",
 				$"Vui lòng xác nhận email bằng cách click link này <a href='{encodedUrl}'>{encodedUrl}</a>");
@@ -165,10 +184,10 @@ namespace CitishopNET.Controllers
 		[ProducesResponseType(StatusCodes.Status200OK)]
 		public async Task<IActionResult> LoginAsync([FromBody] LoginUserDto value)
 		{
-			var result = await _signInManager.PasswordSignInAsync(value.UserName, value.Password, isPersistent: false, lockoutOnFailure: false);
+			var result = await _signInManager.PasswordSignInAsync(value.Email, value.Password, isPersistent: false, lockoutOnFailure: false);
 			if (result.Succeeded)
 			{
-				var userDto = await _userService.GetUserByNameAsync(value.UserName);
+				var userDto = await _userService.GetUserByEmailAsync(value.Email);
 				return Ok(userDto);
 			}
 			if (result.IsNotAllowed) // User's email hasn't been confirmed
@@ -194,18 +213,18 @@ namespace CitishopNET.Controllers
 		/// <summary>
 		/// Thay đổi mật khẩu User
 		/// </summary>
-		/// <param name="userName"></param>
+		/// <param name="email"></param>
 		/// <param name="value"></param>
 		/// <returns></returns>
 		/// <response code="204">Thay đổi mật khẩu thành công</response>
 		/// <response code="400">Có lỗi khi thay đổi mật khẩu</response>
 		/// <response code="404">Không tìm thấy User</response>
 		// PUT api/<UserController>/ChangePassword/{userName}
-		[HttpPut("ChangePassword/{userName}")]
+		[HttpPut("ChangePassword/{email}")]
 		[ProducesResponseType(StatusCodes.Status204NoContent)]
-		public async Task<IActionResult> ChangePasswordAsync(string userName, [FromBody] ChangePasswordDto value)
+		public async Task<IActionResult> ChangePasswordAsync(string email, [FromBody] ChangePasswordDto value)
 		{
-			var user = await _userManager.FindByNameAsync(userName);
+			var user = await _userManager.FindByEmailAsync(email);
 			if (user == null)
 			{
 				return NotFound();
@@ -256,7 +275,7 @@ namespace CitishopNET.Controllers
 		/// <param name="code"></param>
 		/// <param name="value"></param>
 		/// <returns></returns>
-		/// <response code="204">Đặt lại mật khẩu User thành công (Vẫn trả về StatusCode 200 nếu email không tồn tại)</response>
+		/// <response code="204">Đặt lại mật khẩu User thành công (Vẫn trả về StatusCode 204 nếu email không tồn tại)</response>
 		/// <response code="400">Có lỗi khi đặt lại mật khẩu</response>
 		// PUT api/<UserController>/ResetPassword/{code}
 		[HttpPut("ResetPassword/{code}")]
@@ -280,36 +299,54 @@ namespace CitishopNET.Controllers
 		}
 
 		/// <summary>
-		/// Chỉnh sửa User theo userName
+		/// Chỉnh sửa User theo Email
 		/// </summary>
-		/// <param name="userName"></param>
+		/// <param name="email"></param>
 		/// <param name="value"></param>
 		/// <returns></returns>
 		/// <response code="200">Trả về User đã chỉnh sửa</response>
 		/// <response code="400">Input không hợp lệ</response>
 		/// <response code="404">Không tìm thấy User</response>
 		// PUT api/<UserController>/{userName}
-		[HttpPut("{userName}")]
+		[HttpPut("{email}")]
 		[ProducesResponseType(StatusCodes.Status200OK)]
-		public async Task<IActionResult> UpdateAsync(string userName, [FromBody] EditUserDto value)
+		public async Task<IActionResult> UpdateAsync(string email, [FromBody] EditUserDto value)
 		{
-			var userDto = await _userService.UpdateAsync(userName, value);
+			var userDto = await _userService.UpdateAsync(email, value);
+			return userDto == null ? NotFound() : Ok(userDto);
+		}
+
+		/// <summary>
+		/// Chỉnh sửa phân quyền User theo Email
+		/// </summary>
+		/// <param name="email"></param>
+		/// <param name="value"></param>
+		/// <returns></returns>
+		/// <response code="200">Trả về User đã chỉnh sửa</response>
+		/// <response code="400">Input không hợp lệ</response>
+		/// <response code="404">Không tìm thấy User</response>
+		// PUT api/<UserController>/{userName}
+		[HttpPut("{email}/Role")]
+		[ProducesResponseType(StatusCodes.Status200OK)]
+		public async Task<IActionResult> UpdateUserRoleAsync(string email, [FromBody] EditUserRoleDto value)
+		{
+			var userDto = await _userService.UpdateUserRoleAsync(email, value);
 			return userDto == null ? NotFound() : Ok(userDto);
 		}
 
 		/// <summary>
 		/// Xoá User
 		/// </summary>
-		/// <param name="userName"></param>
+		/// <param name="email"></param>
 		/// <returns></returns>
 		/// <response code="204">Xoá User thành công</response>
 		/// <response code="404">Không tìm thấy User</response>
 		// DELETE api/<UserController>/{userName}
-		[HttpDelete("{userName}")]
+		[HttpDelete("{email}")]
 		[ProducesResponseType(StatusCodes.Status204NoContent)]
-		public async Task<IActionResult> DeleteAsync(string userName)
+		public async Task<IActionResult> DeleteAsync(string email)
 		{
-			var userDto = await _userService.DeleteAsync(userName);
+			var userDto = await _userService.DeleteAsync(email);
 			return userDto == null ? NotFound() : NoContent();
 		}
 	}

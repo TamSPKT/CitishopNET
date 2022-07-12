@@ -25,8 +25,18 @@ namespace CitishopNET.Business.Services
 			var query = _productRepository.Entities.AsNoTracking().OrderBy(x => x.Name);
 			var dtoQuery = query.Select(x => _mapper.Map<ProductDto>(x));
 			var pagedProducts = dtoQuery.AsEnumerable()
-				.Where(x => x.Name.Contains(criteria.Name, StringComparison.InvariantCultureIgnoreCase))
+				.Where(x => string.IsNullOrEmpty(criteria.Name) || x.Name.Contains(criteria.Name, StringComparison.InvariantCultureIgnoreCase))
 				.Paginate(criteria.Page, criteria.Limit);
+			return pagedProducts;
+		}
+
+		public async Task<PagedModel<ProductDto>> GetRandomProductsAsync(int count)
+		{
+			var dtoQuery = _productRepository.Entities.AsNoTracking()
+				.OrderBy(x => Guid.NewGuid())
+				.Take(count)
+				.Select(x => _mapper.Map<ProductDto>(x));
+			var pagedProducts = await dtoQuery.PaginateAsync(1, count);
 			return pagedProducts;
 		}
 

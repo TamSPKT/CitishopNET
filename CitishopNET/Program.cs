@@ -39,6 +39,18 @@ builder.Services.AddSwaggerGen(options =>
 	options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
 });
 
+builder.Services.AddCors(options =>
+{
+	options.AddPolicy("MyPolicy", policy =>
+	{
+		policy.AllowAnyOrigin()
+		//.WithOrigins("http://localhost:3000", "https://citishopnet20220412221518.azurewebsites.net")
+		.AllowAnyHeader()
+		.AllowAnyMethod();
+	});
+});
+builder.Services.AddApplicationInsightsTelemetry();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -59,6 +71,9 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 
+app.UseCors();
+
+app.UseAuthorization();
 
 app.MapControllerRoute(
 	name: "default",

@@ -19,10 +19,23 @@ namespace CitishopNET.DataAccess.Data
 			builder.Entity<ApplicationUser>(entity =>
 			{
 				entity.ToTable(name: "Users");
+				entity.Property(e => e.IsAdmin).HasDefaultValue(false);
+			});
+			builder.Entity<UserDeliveryAddress>(entity =>
+			{
+				entity.ToTable(name: "UserDeliveryAddresses");
+				entity.HasKey(e => new { e.UserId, e.Id });
+				entity.Property(e => e.Id).ValueGeneratedOnAdd();
+			});
+			builder.Entity<Category>(entity =>
+			{
+				entity.ToTable(name: "Categories");
+				entity.HasData(DataSeeding.SeedCategories());
 			});
 			builder.Entity<Product>(entity =>
 			{
 				entity.ToTable(name: "Products");
+				entity.HasData(DataSeeding.SeedProducts());
 			});
 			builder.Entity<Invoice>(entity =>
 			{

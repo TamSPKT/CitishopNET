@@ -1,11 +1,13 @@
 ﻿using CitishopNET.Business.Services;
 using CitishopNET.Shared.Dtos.Product;
 using CitishopNET.Shared.QueryCriteria;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CitishopNET.Controllers
 {
 	[ApiController]
+	[EnableCors("MyPolicy")]
 	[Route("api/[controller]")]
 	[Produces("application/json")]
 	public class ProductController : ControllerBase
@@ -31,6 +33,21 @@ namespace CitishopNET.Controllers
 		public IActionResult Get([FromQuery] ProductQueryCriteria query)
 		{
 			var products = _productService.GetProducts(query);
+			return Ok(products);
+		}
+
+		/// <summary>
+		/// Lấy Random danh sách Product được pagination
+		/// </summary>
+		/// <param name="count"></param>
+		/// <returns></returns>
+		/// <response code="200">Trả về danh sách Product</response>
+		// GET api/<ProductController>/Random/5
+		[HttpGet("Random/")]
+		[ProducesResponseType(StatusCodes.Status200OK)]
+		public async Task<IActionResult> GetRandomAsync([FromQuery] int count = 5)
+		{
+			var products = await _productService.GetRandomProductsAsync(count);
 			return Ok(products);
 		}
 

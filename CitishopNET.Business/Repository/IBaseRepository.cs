@@ -10,5 +10,6 @@ namespace CitishopNET.Business.Repository
 		Task<bool> AddAsync(T entity);
 		Task<bool> UpdateAsync(T entity);
 		Task<bool> DeleteAsync(T entity);
+		Task<int> SaveChangesAsync();
 	}
 }

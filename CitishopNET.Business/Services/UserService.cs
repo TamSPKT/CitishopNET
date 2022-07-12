@@ -37,9 +37,9 @@ namespace CitishopNET.Business.Services
 			return pagedUsers;
 		}
 
-		public async Task<UserDto?> GetUserByNameAsync(string userName)
+		public async Task<UserDto?> GetUserByEmailAsync(string email)
 		{
-			var user = await _userManager.FindByNameAsync(userName);
+			var user = await _userManager.FindByEmailAsync(email);
 			return user != null
 				? _mapper.Map<UserDto>(user)
 				: null;
@@ -49,18 +49,17 @@ namespace CitishopNET.Business.Services
 		{
 			var user = CreateUser();
 
-			await _userStore.SetUserNameAsync(user, registerUserDto.UserName, CancellationToken.None);
+			await _userStore.SetUserNameAsync(user, registerUserDto.Email, CancellationToken.None);
 			await _userEmailStore.SetEmailAsync(user, registerUserDto.Email, CancellationToken.None);
-			await _userPhoneNumberStore.SetPhoneNumberAsync(user, registerUserDto.PhoneNumber, CancellationToken.None);
 			user = _mapper.Map<RegisterUserDto, ApplicationUser>(registerUserDto, user);
 			var result = await _userManager.CreateAsync(user, registerUserDto.Password);
 
 			return (result, user);
 		}
 
-		public async Task<UserDto?> UpdateAsync(string userName, EditUserDto editUserDto)
+		public async Task<UserDto?> UpdateAsync(string email, EditUserDto editUserDto)
 		{
-			var user = await _userManager.FindByNameAsync(userName);
+			var user = await _userManager.FindByEmailAsync(email);
 			if (user == null)
 			{
 				return null;
@@ -72,9 +71,22 @@ namespace CitishopNET.Business.Services
 			return _mapper.Map<UserDto>(user);
 		}
 
-		public async Task<UserDto?> DeleteAsync(string userName)
+		public async Task<UserDto?> UpdateUserRoleAsync(string email, EditUserRoleDto dto)
 		{
-			var user = await _userManager.FindByNameAsync(userName);
+			var user = await _userManager.FindByEmailAsync(email);
+			if (user == null)
+			{
+				return null;
+			}
+			user.IsAdmin = dto.IsAdmin;
+			var result = await _userManager.UpdateAsync(user);
+
+			return _mapper.Map<UserDto>(user);
+		}
+
+		public async Task<UserDto?> DeleteAsync(string email)
+		{
+			var user = await _userManager.FindByEmailAsync(email);
 			if (user == null)
 			{
 				return null;

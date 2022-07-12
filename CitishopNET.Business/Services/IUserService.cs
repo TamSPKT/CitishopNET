@@ -9,9 +9,10 @@ namespace CitishopNET.Business.Services
 	public interface IUserService
 	{
 		Task<PagedModel<UserDto>> GetUsersAsync(BaseQueryCriteria criteria);
-		Task<UserDto?> GetUserByNameAsync(string userName);
+		Task<UserDto?> GetUserByEmailAsync(string email);
 		Task<(IdentityResult, ApplicationUser)> RegisterAsync(RegisterUserDto registerUserDto);
-		Task<UserDto?> UpdateAsync(string userName, EditUserDto editUserDto);
-		Task<UserDto?> DeleteAsync(string userName);
+		Task<UserDto?> UpdateAsync(string email, EditUserDto editUserDto);
+		Task<UserDto?> UpdateUserRoleAsync(string email, EditUserRoleDto dto);
+		Task<UserDto?> DeleteAsync(string email);
 	}
 }

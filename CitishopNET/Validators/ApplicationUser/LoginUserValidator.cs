@@ -14,9 +14,9 @@ namespace CitishopNET.Validators.ApplicationUser
 	{
 		public LoginUserValidator()
 		{
-			RuleFor(x => x.UserName)
-				.NotEmpty()
-				.WithMessage("Không được để trống");
+			RuleFor(x => x.Email)
+				.EmailAddress()
+				.WithMessage("Email không hợp lệ");
 			RuleFor(x => x.Password)
 				.NotEmpty()
 				.WithMessage("Không được để trống");

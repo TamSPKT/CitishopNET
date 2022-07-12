@@ -41,6 +41,9 @@ namespace CitishopNET.Validators.Product
 			RuleFor(x => x.ImageUrl)
 				.NotEmpty()
 				.WithMessage("Không được để trống");
+			RuleFor(x => x.CategoryId)
+				.NotEmpty()
+				.WithMessage("Không được để trống");
 		}
 	}
 }

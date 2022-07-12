@@ -36,9 +36,12 @@ namespace CitishopNET.Validators.Product
 				.GreaterThan(0)
 				.WithMessage(x => $"Phải lớn hơn 0");
 			RuleFor(x => x.Description)
-				.MaximumLength(500)
-				.WithMessage("Quá giới hạn 500 ký tự");
+				.MaximumLength(5000)
+				.WithMessage("Quá giới hạn 5000 ký tự");
 			RuleFor(x => x.ImageUrl)
+				.NotEmpty()
+				.WithMessage("Không được để trống");
+			RuleFor(x => x.CategoryId)
 				.NotEmpty()
 				.WithMessage("Không được để trống");
 		}

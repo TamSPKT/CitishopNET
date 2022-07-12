@@ -14,16 +14,14 @@ namespace CitishopNET.Validators.ApplicationUser
 	{
 		public EditUserValidator()
 		{
+			RuleFor(x => x.FullName)
+				.NotEmpty()
+				.WithMessage("Không được để trống");
 			RuleFor(x => x.PhoneNumber)
 				.NotEmpty()
 				.WithMessage("Không được để trống")
 				.Matches("^(84|0[3|5|7|8|9])+([0-9]{8})$")
 				.WithMessage("Số điện thoại không hợp lệ");
-			RuleFor(x => x.Address)
-				.NotEmpty()
-				.WithMessage("Không được để trống")
-				.MaximumLength(500)
-				.WithMessage("Quá giới hạn 500 ký tự");
 			RuleFor(x => x.DateOfBirth)
 				.NotEmpty()
 				.WithMessage("Không được để trống");

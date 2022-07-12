@@ -12,14 +12,14 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CitishopNET.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20220404132042_InitialMigration")]
-    partial class InitialMigration
+    [Migration("20220707131006_SeedData")]
+    partial class SeedData
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.3")
+                .HasAnnotation("ProductVersion", "6.0.6")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
@@ -32,15 +32,11 @@ namespace CitishopNET.DataAccess.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("int");
 
-                    b.Property<string>("Address")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("DOB")
+                    b.Property<DateTime?>("DOB")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Email")
@@ -50,8 +46,14 @@ namespace CitishopNET.DataAccess.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("bit");
 
-                    b.Property<string>("Gender")
+                    b.Property<string>("FullName")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsAdmin")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("bit");
@@ -99,13 +101,119 @@ namespace CitishopNET.DataAccess.Migrations
                     b.ToTable("Users", (string)null);
                 });
 
+            modelBuilder.Entity("CitishopNET.DataAccess.Models.Category", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Categories", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("ba4f7300-66af-45a6-b0d4-ee3cf5a7eae8"),
+                            Name = "Trang điểm"
+                        },
+                        new
+                        {
+                            Id = new Guid("512df5ef-f164-47ab-a52a-f0a3650634df"),
+                            Name = "Chăm sóc da"
+                        },
+                        new
+                        {
+                            Id = new Guid("a299c3cb-d65a-4405-a53b-74f29d688dfa"),
+                            Name = "Chăm sóc cơ thể"
+                        },
+                        new
+                        {
+                            Id = new Guid("0bf8df34-1177-4935-85f4-ccfa035973b9"),
+                            Name = "Chăm sóc tóc"
+                        },
+                        new
+                        {
+                            Id = new Guid("cf07b43d-1527-49bd-a3b8-8a210ceb50fb"),
+                            Name = "Nước hoa"
+                        },
+                        new
+                        {
+                            Id = new Guid("559517fa-27a0-46f4-9d01-3baa47c3db20"),
+                            Name = "Thực phẩm chức năng"
+                        },
+                        new
+                        {
+                            Id = new Guid("e4cdba4a-a804-4026-a64c-d57570437187"),
+                            Name = "Phụ kiện"
+                        },
+                        new
+                        {
+                            Id = new Guid("6ce4f5b2-244c-4c4e-9da9-63ac829c4d66"),
+                            Name = "Dành cho nam"
+                        },
+                        new
+                        {
+                            Id = new Guid("e8449ff4-cfbf-4447-8054-e29545000372"),
+                            Name = "Dành cho em bé"
+                        },
+                        new
+                        {
+                            Id = new Guid("acc874a2-7492-4bab-88ac-f017ade9158e"),
+                            Name = "Vệ sinh cá nhân"
+                        });
+                });
+
             modelBuilder.Entity("CitishopNET.DataAccess.Models.Invoice", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<DateTime?>("DateDelivered")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("DateOrdered")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeliveryAddress")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DeliveryDescription")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("DeliveryStatus")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Discount")
+                        .HasPrecision(14, 2)
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<int>("PaymentStatus")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PaymentType")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ReceiverName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<decimal>("TotalCost")
+                        .HasPrecision(14, 2)
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("TotalFee")
                         .HasPrecision(14, 2)
                         .HasColumnType("decimal(14,2)");
 
@@ -128,7 +236,10 @@ namespace CitishopNET.DataAccess.Migrations
                     b.Property<Guid>("InvoiceId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<decimal>("Cost")
+                    b.Property<int>("Amount")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("CostPerItem")
                         .HasPrecision(14, 2)
                         .HasColumnType("decimal(14,2)");
 
@@ -143,6 +254,9 @@ namespace CitishopNET.DataAccess.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CategoryId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Description")
@@ -170,7 +284,109 @@ namespace CitishopNET.DataAccess.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CategoryId");
+
                     b.ToTable("Products", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("ae79ae19-8664-464b-880f-909a78fe3bf2"),
+                            CategoryId = new Guid("ba4f7300-66af-45a6-b0d4-ee3cf5a7eae8"),
+                            Description = "Son Kem Lì Nhẹ Môi Cao Cấp LOréal Paris 119 I Dream 7ml",
+                            ImageUrl = "/assets/images/products/sonloreal.jpg",
+                            Name = "Son Kem Lì Nhẹ Môi Cao Cấp LOréal Paris 119 I Dream 7ml",
+                            Price = 250000m,
+                            Quantity = 100
+                        },
+                        new
+                        {
+                            Id = new Guid("9c965823-afd5-4559-8f95-aef7cdc95d23"),
+                            CategoryId = new Guid("512df5ef-f164-47ab-a52a-f0a3650634df"),
+                            Description = "Tẩy trang Loreal",
+                            ImageUrl = "/assets/images/products/taytrangloreal.jpg",
+                            Name = "Tẩy trang Loreal",
+                            Price = 250000m,
+                            Quantity = 100
+                        },
+                        new
+                        {
+                            Id = new Guid("6ba8c452-4c2b-4121-9b2c-fbe3d6d3d65b"),
+                            CategoryId = new Guid("512df5ef-f164-47ab-a52a-f0a3650634df"),
+                            Description = "Toner De Klairs",
+                            ImageUrl = "/assets/images/products/tonerKlairs.jpg",
+                            Name = "Toner De Klairs",
+                            Price = 250000m,
+                            Quantity = 100
+                        },
+                        new
+                        {
+                            Id = new Guid("af732951-1b63-4ef2-a87e-e6b345977b53"),
+                            CategoryId = new Guid("ba4f7300-66af-45a6-b0d4-ee3cf5a7eae8"),
+                            Description = "Son 3CE",
+                            ImageUrl = "/assets/images/products/son3ce.jpg",
+                            Name = "Son 3CE",
+                            Price = 250000m,
+                            Quantity = 100
+                        },
+                        new
+                        {
+                            Id = new Guid("ecee190c-620c-4145-abc5-06049f6016d6"),
+                            CategoryId = new Guid("512df5ef-f164-47ab-a52a-f0a3650634df"),
+                            Description = "Nước Tẩy Trang La Roche-Posay Dành Cho Da Nhạy Cảm 400ml",
+                            ImageUrl = "/assets/images/products/taytranglarocheposay.jpg",
+                            Name = "Nước Tẩy Trang La Roche-Posay Dành Cho Da Nhạy Cảm 400ml",
+                            Price = 250000m,
+                            Quantity = 100
+                        },
+                        new
+                        {
+                            Id = new Guid("bb5dbb97-a510-42df-a286-1531a23ebace"),
+                            CategoryId = new Guid("512df5ef-f164-47ab-a52a-f0a3650634df"),
+                            Description = "Sữa Rửa Mặt Cetaphil Dịu Nhẹ Không Xà Phòng 500ml",
+                            ImageUrl = "/assets/images/products/srmcetaphil.jpg",
+                            Name = "Sữa Rửa Mặt Cetaphil Dịu Nhẹ Không Xà Phòng 500ml",
+                            Price = 250000m,
+                            Quantity = 100
+                        },
+                        new
+                        {
+                            Id = new Guid("00275660-559f-40cc-a882-96d6a5e99c76"),
+                            CategoryId = new Guid("512df5ef-f164-47ab-a52a-f0a3650634df"),
+                            Description = "Sữa Chống Nắng Anessa Dưỡng Da Kiềm Dầu 60ml",
+                            ImageUrl = "/assets/images/products/kcnanness.jpg",
+                            Name = "Sữa Chống Nắng Anessa Dưỡng Da Kiềm Dầu 60ml",
+                            Price = 250000m,
+                            Quantity = 100
+                        });
+                });
+
+            modelBuilder.Entity("CitishopNET.DataAccess.Models.UserDeliveryAddress", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<string>("DeliveryAddress")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ReceiverName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("UserId", "Id");
+
+                    b.ToTable("UserDeliveryAddresses", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -336,6 +552,28 @@ namespace CitishopNET.DataAccess.Migrations
                     b.Navigation("Product");
                 });
 
+            modelBuilder.Entity("CitishopNET.DataAccess.Models.Product", b =>
+                {
+                    b.HasOne("CitishopNET.DataAccess.Models.Category", "Category")
+                        .WithMany("Products")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Category");
+                });
+
+            modelBuilder.Entity("CitishopNET.DataAccess.Models.UserDeliveryAddress", b =>
+                {
+                    b.HasOne("CitishopNET.DataAccess.Models.ApplicationUser", "User")
+                        .WithMany("Addresses")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -389,7 +627,14 @@ namespace CitishopNET.DataAccess.Migrations
 
             modelBuilder.Entity("CitishopNET.DataAccess.Models.ApplicationUser", b =>
                 {
+                    b.Navigation("Addresses");
+
                     b.Navigation("Invoices");
+                });
+
+            modelBuilder.Entity("CitishopNET.DataAccess.Models.Category", b =>
+                {
+                    b.Navigation("Products");
                 });
 
             modelBuilder.Entity("CitishopNET.DataAccess.Models.Invoice", b =>

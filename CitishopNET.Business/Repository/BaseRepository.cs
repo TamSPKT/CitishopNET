@@ -38,6 +38,11 @@ namespace CitishopNET.Business.Repository
 			int n = await _dbContext.SaveChangesAsync();
 			return n > 0;
 		}
+
+		public async Task<int> SaveChangesAsync()
+		{
+			return await _dbContext.SaveChangesAsync();
+		}
 		#endregion
 	}
 }
