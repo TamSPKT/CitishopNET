@@ -19,5 +19,7 @@ namespace CitishopNET.Shared.Dtos.Invoice
 		public decimal TotalCost { get; set; }
 		public decimal TotalFee { get; set; }
 		public decimal Discount { get; set; }
+		// Momo Payment
+		public string ReturnUrl { get; set; } = null!;
 	}
 }

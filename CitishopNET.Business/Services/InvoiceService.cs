@@ -120,7 +120,7 @@ namespace CitishopNET.Business.Services
 			return invoice.PaymentType switch
 			{
 				PaymentType.OnDelivery => (PaymentStatusDto.Waiting, _mapper.Map<InvoiceDto>(invoice)),
-				PaymentType.MomoWallet => await SendMomoPaymentRequest(notifyUrl, invoice),
+				PaymentType.MomoWallet => await SendMomoPaymentRequest(dto.ReturnUrl, notifyUrl, invoice),
 				_ => (PaymentStatusDto.Failed, new Exception("Unknown Payment Type")),
 			};
 		}
@@ -171,10 +171,10 @@ namespace CitishopNET.Business.Services
 			return _mapper.Map<InvoiceDto>(invoice);
 		}
 
-		private async Task<(PaymentStatusDto, object)> SendMomoPaymentRequest(string notifyUrl, Invoice invoice)
+		private async Task<(PaymentStatusDto, object)> SendMomoPaymentRequest(string returnUrl, string notifyUrl, Invoice invoice)
 		{
 			var paymentRequest = _mapper.Map<MomoPaymentRequestDto>(invoice);
-			paymentRequest.ReturnUrl = new Uri("https://localhost:3000/orders").AbsoluteUri;
+			paymentRequest.ReturnUrl = returnUrl;
 			paymentRequest.NotifyUrl = notifyUrl;
 
 			// TODO: Testing Momo Payment

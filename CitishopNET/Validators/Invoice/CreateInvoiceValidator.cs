@@ -1,4 +1,5 @@
 ﻿using CitishopNET.Shared.Dtos.Invoice;
+using CitishopNET.Shared.EnumDtos;
 using FluentValidation;
 
 namespace CitishopNET.Validators.Invoice
@@ -60,6 +61,12 @@ namespace CitishopNET.Validators.Invoice
 				.WithMessage("Không được để trống")
 				.GreaterThanOrEqualTo(0)
 				.WithMessage("Phải lớn hơn hoặc bằng 0");
+			When(x => x.PaymentType == PaymentTypeDto.MomoWallet, () =>
+			{
+				RuleFor(x => x.ReturnUrl)
+				.NotNull()
+				.WithMessage("Không được để trống");
+			});
 		}
 	}
 }
