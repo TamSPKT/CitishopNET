@@ -18,6 +18,7 @@ namespace CitishopNET.Business
 			services.AddTransient(typeof(IUserService), typeof(UserService));
 			services.AddTransient(typeof(IUserDeliveryAddressService), typeof(UserDeliveryAddressService));
 			services.AddTransient(typeof(IInvoiceService), typeof(InvoiceService));
+			services.AddTransient(typeof(IReportService), typeof(ReportService));
 
 			services.AddTransient<IEmailSender, EmailSender>();
 			services.Configure<AuthMessageSenderOptions>(configuration.GetSection(AuthMessageSenderOptions.AuthMessageSender));
