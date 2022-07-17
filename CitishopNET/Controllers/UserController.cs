@@ -147,29 +147,30 @@ namespace CitishopNET.Controllers
 		/// <param name="code"></param>
 		/// <returns></returns>
 		/// <response code="200">Xác nhận thành công, cho phép User đăng nhập</response>
-		/// <response code="400">Có lỗi khi xác nhận</response>
-		/// <response code="404">Không tìm thấy User</response>
 		// GET api/<UserController>/ConfirmEmail
 		[HttpGet("ConfirmEmail")]
 		[ProducesResponseType(StatusCodes.Status200OK)]
+		[Produces("text/html")]
 		public async Task<IActionResult> ConfirmEmailAsync(string userId, string code)
 		{
-			if (userId == null || code == null)
-			{
-				return BadRequest();
-			}
+			var encodedUrl = HtmlEncoder.Default.Encode(new Uri("https://citishop.azurewebsites.net/").AbsoluteUri);
+			var message = "Có lỗi xảy ra.";
 
-			var user = await _userManager.FindByIdAsync(userId);
-			if (user == null)
+			if (userId != null && code != null)
 			{
-				return NotFound();
+				var user = await _userManager.FindByIdAsync(userId);
+				if (user != null)
+				{
+					code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code));
+					var result = await _userManager.ConfirmEmailAsync(user, code);
+					if (result.Succeeded)
+					{
+						message = "Xác nhận email thành công.";
+					}
+				}
 			}
-
-			code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code));
-			var result = await _userManager.ConfirmEmailAsync(user, code);
-			return result.Succeeded
-				? Ok("Xác nhận email thành công.")
-				: BadRequest(result.Errors);
+			var pageHtml = $"<html><h3>{message}</h3><p>Click <a href='{encodedUrl}'>link</a> này để trở về trang chủ.</p></html>";
+			return Content(pageHtml, "text/html", Encoding.UTF8);
 		}
 
 		/// <summary>
