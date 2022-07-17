@@ -10,8 +10,9 @@ namespace CitishopNET.Business.Services
 		Task<PagedModel<InvoiceDto>> GetInvoicesAsync(InvoiceQueryCriteria criteria);
 		Task<InvoiceDetailDto?> GetInvoiceByIdAsync(Guid id);
 		Task<InvoiceFullDetailDto?> GetFullInvoiceByIdAsync(Guid id);
-		Task<(PaymentStatusDto, object)> AddAsync(string notifyUrl, CreateInvoiceDto dto);
+		Task<(PaymentStatusDto, object)> AddAsync(CreateInvoiceDto dto, string returnUrl, string notifyUrl);
 		Task<InvoiceDto?> UpdateAsync(Guid id, EditInvoiceDto dto);
+		Task<bool> UpdatePaymentStatusAsync(Guid id, PaymentStatusDto dto);
 		Task<InvoiceDto?> DeleteAsync(Guid id);
 	}
 }

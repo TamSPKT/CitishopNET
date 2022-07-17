@@ -65,7 +65,7 @@ namespace CitishopNET.Business.Services
 				: null;
 		}
 
-		public async Task<(PaymentStatusDto, object)> AddAsync(string notifyUrl, CreateInvoiceDto dto)
+		public async Task<(PaymentStatusDto, object)> AddAsync(CreateInvoiceDto dto, string returnUrl, string notifyUrl)
 		{
 			var user = await _userManager.FindByEmailAsync(dto.Email);
 			if (user == null)
@@ -120,7 +120,7 @@ namespace CitishopNET.Business.Services
 			return invoice.PaymentType switch
 			{
 				PaymentType.OnDelivery => (PaymentStatusDto.Waiting, _mapper.Map<InvoiceDto>(invoice)),
-				PaymentType.MomoWallet => await SendMomoPaymentRequest(dto.ReturnUrl, notifyUrl, invoice),
+				PaymentType.MomoWallet => await SendMomoPaymentRequest(invoice, returnUrl: returnUrl, notifyUrl: notifyUrl),
 				_ => (PaymentStatusDto.Failed, new Exception("Unknown Payment Type")),
 			};
 		}
@@ -160,6 +160,17 @@ namespace CitishopNET.Business.Services
 			return _mapper.Map<InvoiceDto>(invoice);
 		}
 
+		public async Task<bool> UpdatePaymentStatusAsync(Guid id, PaymentStatusDto dto)
+		{
+			var invoice = await _invoiceRepository.Entities.FindAsync(id);
+			if (invoice == null)
+			{
+				return false;
+			}
+			invoice.PaymentStatus = (PaymentStatus)(int)dto;
+			return await _invoiceRepository.UpdateAsync(invoice);
+		}
+
 		public async Task<InvoiceDto?> DeleteAsync(Guid id)
 		{
 			var invoice = await _invoiceRepository.Entities.SingleOrDefaultAsync(x => x.Id == id);
@@ -171,14 +182,14 @@ namespace CitishopNET.Business.Services
 			return _mapper.Map<InvoiceDto>(invoice);
 		}
 
-		private async Task<(PaymentStatusDto, object)> SendMomoPaymentRequest(string returnUrl, string notifyUrl, Invoice invoice)
+		private async Task<(PaymentStatusDto, object)> SendMomoPaymentRequest(Invoice invoice, string returnUrl, string notifyUrl)
 		{
 			var paymentRequest = _mapper.Map<MomoPaymentRequestDto>(invoice);
 			paymentRequest.ReturnUrl = returnUrl;
 			paymentRequest.NotifyUrl = notifyUrl;
 
 			// TODO: Testing Momo Payment
-			paymentRequest.Amount = "1000"; // Testing
+			// paymentRequest.Amount = "1000"; // Testing
 
 			//await Task.Delay(250);
 			//throw new NotImplementedException("Temporary prevent payment using Momo");
