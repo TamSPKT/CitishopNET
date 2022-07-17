@@ -1,9 +1,12 @@
-﻿using CitishopNET.Business.Services;
+﻿using CitishopNET.Business.Options;
+using CitishopNET.Business.Services;
 using CitishopNET.Shared.Dtos.Invoice;
+using CitishopNET.Shared.EnumDtos;
 using CitishopNET.Shared.MomoDtos;
 using CitishopNET.Shared.QueryCriteria;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using System.Text;
 using System.Text.Encodings.Web;
 
@@ -17,11 +20,13 @@ namespace CitishopNET.Controllers
 	{
 		private readonly IInvoiceService _invoiceService;
 		private readonly ILogger<InvoiceController> _logger;
+		private readonly MomoPaymentOptions _momoOptions;
 
-		public InvoiceController(IInvoiceService invoiceService, ILogger<InvoiceController> logger)
+		public InvoiceController(IInvoiceService invoiceService, ILogger<InvoiceController> logger, IOptions<MomoPaymentOptions> momoOptionsAccessor)
 		{
 			_invoiceService = invoiceService;
 			_logger = logger;
+			_momoOptions = momoOptionsAccessor.Value;
 		}
 
 		/// <summary>
@@ -84,14 +89,16 @@ namespace CitishopNET.Controllers
 		[ProducesResponseType(StatusCodes.Status201Created)]
 		public async Task<IActionResult> CreateAsync([FromBody] CreateInvoiceDto value)
 		{
-			var notifyUrl = Url.ActionLink(
-				action: "NotifyUrl",
-				protocol: Request.Scheme);
-			string encodedUrl = HtmlEncoder.Default.Encode(notifyUrl!);
-			_logger.LogInformation("NotifyUrl : {EncodefUrl}", encodedUrl);
-			//string encodedUrl = string.Empty;
+			var notifyUrl = new Uri($"{Request.Scheme}://{Request.Host.Value}/api/Invoice/NotifyUrl").AbsoluteUri;
+			string encodedNotifyUrl = HtmlEncoder.Default.Encode(notifyUrl!);
+			_logger.LogInformation("NotifyUrl : {EncodedUrl}", encodedNotifyUrl);
+			//string encodedNotifyUrl = string.Empty; // Update Invoice using ReturnUrl instead
 
-			(var status, var response) = await _invoiceService.AddAsync(encodedUrl, value);
+			var returnUrl = new Uri($"{Request.Scheme}://{Request.Host.Value}/api/Invoice/ReturnUrl").AbsoluteUri;
+			string encodedReturnUrl = HtmlEncoder.Default.Encode(returnUrl!);
+			_logger.LogInformation("NotifyUrl : {EncodedUrl}", encodedReturnUrl);
+
+			(var status, var response) = await _invoiceService.AddAsync(value, returnUrl: encodedReturnUrl, notifyUrl: encodedNotifyUrl);
 
 			return response switch
 			{
@@ -101,6 +108,35 @@ namespace CitishopNET.Controllers
 				Exception ex => Problem(statusCode: StatusCodes.Status500InternalServerError, detail: ex.Message),
 				_ => Problem(statusCode: StatusCodes.Status500InternalServerError),
 			};
+		}
+
+		/// <summary>
+		/// Redirect payment result from Momo Payment to Frontend page (Also update invoice info)
+		/// </summary>
+		/// <returns></returns>
+		// GET api/<InvoiceController>
+		[HttpGet("ReturnUrl")]
+		public async Task<IActionResult> RedirectMomoPaymentResultAsync()
+		{
+			string queryString = Request.QueryString.ToString();
+			int length = queryString.IndexOf("signature") - 1;
+			string parameters = queryString.Substring(
+				length > 0 ? 1 : 0,
+				length > 0 ? length : 0);
+			//string signature = MomoPaymentExtension.SignSHA256(parameters, _momoOptions.SecretKey!);
+
+			if (Guid.TryParse(Request.Query["orderId"].ToString(), out Guid orderId)) // Thông tin Request hợp lệ
+			{
+				if (Request.Query["errorCode"].Equals("0")) // Thanh toán thành công
+				{
+					await _invoiceService.UpdatePaymentStatusAsync(orderId, PaymentStatusDto.Succeeded);
+				}
+				else // Thanh toán thất bại
+				{
+					await _invoiceService.UpdatePaymentStatusAsync(orderId, PaymentStatusDto.Failed);
+				}
+			}
+			return Redirect(new Uri("https://citishop.azurewebsites.net/").AbsoluteUri);
 		}
 
 		/// <summary>
